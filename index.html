@@ -14,10 +14,14 @@
 	<link href="css/bootstrap.min.css" rel="stylesheet">
 	<link href="css/materialdesignicons.min.css" rel="stylesheet">
 	<link href="css/style.min.css" rel="stylesheet">
-    <title>折线上添加方向箭头</title>
+	<link href="css/jquery.pageslide.css" rel="stylesheet">
+    <title>中华民族园旅游导览系统</title>
 </head>
 
 <body>
+	<!--路线导航侧边栏引用-->
+	<script type="text/javascript" src="js/jquery.pageslide.min.js"></script>
+	<!--顶部导航栏-->
 	<div class="navbar navbar-default" role="navigation">
 	 <!--标题通过“navbar-header”和“navbar-brand”来实现-->
 	 <div class="navbar-header">
@@ -29,7 +33,7 @@
 	  <a href="##" data-toggle="dropdown" class="dropdown-toggle">游客服务<span class="caret"></span></a>
 	  <!--二级菜单-->
 	  <ul class="dropdown-menu">
-	   <li><a href="##">路线导航</a></li>
+	   <li><a href="#route-guide" id="guide-button">路线导航</a></li>
 	   <li><a href="##">路线推荐</a></li>
 	  </ul>
 	  </li>
@@ -38,12 +42,30 @@
 	 <!--表单-->
 	 <form class="navbar-form navbar-left" rol="search">
 	  <div class="form-group">
-	  <input type="text" id="searchInfo" class="form-control" placeholder="请输入想要查找的地点.." />
+	  <input type="text" id="search-spot-info" class="form-control" placeholder="请输入想要查找的地点.." />
 	  </div>
-	  <input type="button" id="searchSubmit" class="btn btn-info" value="搜索"></button>
+	  <input type="button" id="search-spot" class="btn btn-info" value="搜索"></button>
 	 </form>
 	</div>
+	
+	<!--地图-->
 	<div id="allmap"></div>
+	
+	<!--路线搜索侧边栏-->
+	<div id="route-guide">
+		<h2 style="color: #e7eaed;">路线导航</h2>
+		<form class="form-group" rol="search">
+			<div class="form-group">
+				<input type="text" id="start-spot" class="form-control" placeholder="请输入出发地.."/>
+				<input type="text" id="end-spot" class="form-control" placeholder="请输入出发地.."/>
+			</div>
+			<input type="button" id="search-route" class="btn btn-info" value="搜索"></button>
+			<input type="button" class="btn btn-danger" onclick="javascript:$.pageslide.close()" value="关闭"></a>
+		</form>
+		<div id="guide-path"></div>
+		
+	</div>
+
 </body>
 
 
@@ -59,10 +81,44 @@
     strokeWeight: '0.8',	// 设置线宽
 });
 
-$('#searchSubmit').click(function() {
-	let search_info = $("#searchInfo").val();
+// 地点搜索
+$("#search-spot").click(function() {
+	let search_info = $("#search-spot-info").val();
 	console.log(search_info);
 });
+
+// 路线搜索
+$("#search-route").click(function() {
+	let start_name = $("#start-spot").val();
+	let end_name = $("#end-spot").val();
+	// console.log(start,end);
+	let start_idx, end_idx;
+	for(let i = 0;i < map_data.length;i++) {
+		if(map_data[i].name == start_name) {
+			start_idx = i;
+		}
+		if(map_data[i].name == end_name) {
+			end_idx = i;
+		}
+	}
+	let dijkstra = Dijkstra(matrix, start_idx);
+	let path = dijkstra[1][end_idx];
+	let idx_to_name = path.match(/\d+/g); // 正则表达式提取下标用于转换为景点名称
+	console.log(idx_to_name);
+	// 将景点下标替换为景点名称
+	for(let i = 0;i < idx_to_name.length;i++) {
+		path = path.replace(idx_to_name[i], map_data[idx_to_name[i]].name);
+	}
+	console.log(start_name + "到" + end_name + "的最短路径为：" + path);
+	document.getElementById("guide-path").innerText = "最短路线：\n" + path;
+});
+
+// 导航侧边栏
+$("#guide-button").pageslide({
+	direction: "right",
+	modal: true
+});
+
 
 var icons = new BMap.IconSequence(sy, '10', '30');
 // 创建polyline对象
@@ -96,5 +152,4 @@ let matrix = [
 	[Infinity,Infinity,3,7,0]
 ]
 
-Dijkstra(matrix, 0);
 </script>
