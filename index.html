@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+    body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
+    </style>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=3.0&ak=4vulvKbdIUlEmnkCieW8Qq2EA0X8o7ew"></script>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="js/map.js"></script>
+	<script type="text/javascript" src="js/Dijkstra.js"></script>
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/materialdesignicons.min.css" rel="stylesheet">
+	<link href="css/style.min.css" rel="stylesheet">
+    <title>折线上添加方向箭头</title>
+</head>
+
+<body>
+	<div class="navbar navbar-default" role="navigation">
+	 <!--标题通过“navbar-header”和“navbar-brand”来实现-->
+	 <div class="navbar-header">
+	  <a href="##" class="navbar-brand">中华民族园地图</a>
+	 </div>
+	 <ul class="nav navbar-nav" id="ul_header">
+	  <li class="active"><a href="index.html">首页</a></li>
+	  <li class="dropdown">
+	  <a href="##" data-toggle="dropdown" class="dropdown-toggle">游客服务<span class="caret"></span></a>
+	  <!--二级菜单-->
+	  <ul class="dropdown-menu">
+	   <li><a href="##">路线导航</a></li>
+	   <li><a href="##">路线推荐</a></li>
+	  </ul>
+	  </li>
+	  <li><a href="##">论坛</a></li>
+	 </ul>
+	 <!--表单-->
+	 <form class="navbar-form navbar-left" rol="search">
+	  <div class="form-group">
+	  <input type="text" id="searchInfo" class="form-control" placeholder="请输入想要查找的地点.." />
+	  </div>
+	  <input type="button" id="searchSubmit" class="btn btn-info" value="搜索"></button>
+	 </form>
+	</div>
+	<div id="allmap"></div>
+</body>
+
+
+<script type="text/javascript">
+    // 百度地图API功能
+    var map = new BMap.Map("allmap");    // 创建Map实例
+    map.centerAndZoom(new BMap.Point(116.397888,39.991553), 18);  // 初始化地图,设置中心点坐标和地图级别
+    map.enableScrollWheelZoom(true);     // 开启鼠标滚轮缩放
+
+	var sy = new BMap.Symbol(BMap_Symbol_SHAPE_BACKWARD_OPEN_ARROW, {
+    scale: 0.8,	// 图标缩放大小
+    strokeColor:'#fff',	// 设置矢量图标的线填充颜色
+    strokeWeight: '0.8',	// 设置线宽
+});
+
+$('#searchSubmit').click(function() {
+	let search_info = $("#searchInfo").val();
+	console.log(search_info);
+});
+
+var icons = new BMap.IconSequence(sy, '10', '30');
+// 创建polyline对象
+var pois = [
+	new BMap.Point(map_data[0].x,map_data[0].y),
+	new BMap.Point(map_data[1].x,map_data[1].y),
+	new BMap.Point(map_data[2].x,map_data[2].y),
+	new BMap.Point(map_data[3].x,map_data[3].y)
+];
+
+var pointA = new BMap.Point(map_data[0].x,map_data[0].y);
+var pointB = new BMap.Point(map_data[1].x,map_data[1].y);
+
+var polyline =new BMap.Polyline(pois, {
+   enableEditing: false,	// 是否启用线编辑，默认为false
+   enableClicking: true,	// 是否响应点击事件，默认为true
+   icons:[icons],
+   strokeWeight:'2',	// 折线的宽度，以像素为单位
+   strokeOpacity: 0.8,	// 折线的透明度，取值范围0 - 1
+   strokeColor:"#18a45b"	// 折线颜色
+});
+
+console.log(map.getDistance(pointA,pointB));
+map.addOverlay(polyline);          // 增加折线
+  
+let matrix = [
+	[0,4,Infinity,2,Infinity],
+	[4,0,4,1,Infinity],
+	[Infinity,4,0,1,3],
+	[2,1,1,0,7],
+	[Infinity,Infinity,3,7,0]
+]
+
+Dijkstra(matrix, 0);
+</script>
