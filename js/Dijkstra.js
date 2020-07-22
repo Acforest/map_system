@@ -1,5 +1,5 @@
 function Dijkstra(matrix, start) {
-	if(matrix && matrix.length === matrix[0].length && start < matrix.length) {
+	if(matrix && matrix.length == matrix[0].length && start < matrix.length) {
 		let n = matrix.length; // 顶点个数
 		let dis = new Array(n); // start到各个顶点的最短距离
 		let path = new Array(n); // start到各个顶点的最短路径

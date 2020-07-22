@@ -5,16 +5,26 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
     <style type="text/css">
     body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
+	
     </style>
     <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=4vulvKbdIUlEmnkCieW8Qq2EA0X8o7ew"></script>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="js/map.js"></script>
+	<!--景点数据导入-->
+	<script type="text/javascript" src="js/spot.js"></script>
+	<!--路线数据导入-->
+	<script type="text/javascript" src="js/edge.js"></script>
+	<!--Dijkstra算法导入-->
 	<script type="text/javascript" src="js/Dijkstra.js"></script>
-	<link href="css/bootstrap.min.css" rel="stylesheet">
-	<link href="css/materialdesignicons.min.css" rel="stylesheet">
-	<link href="css/style.min.css" rel="stylesheet">
-	<link href="css/jquery.pageslide.css" rel="stylesheet">
+	<!--KMP算法导入-->
+	<script type="text/javascript" src="js/KMP.js"></script>
+	<!--自动补全算法导入-->
+	<script type="text/javascript" src="js/autocomplete.js"></script>
+	<link href="css/bootstrap.min.css" rel="stylesheet"/>
+	<link href="css/materialdesignicons.min.css" rel="stylesheet"/>
+	<link href="css/style.min.css" rel="stylesheet"/>
+	<link href="css/jquery.pageslide.css" rel="stylesheet"/>
+	<link href="css/autocomplete.css" rel="stylesheet"/>
     <title>中华民族园旅游导览系统</title>
 </head>
 
@@ -39,13 +49,13 @@
 	  </li>
 	  <li><a href="##">论坛</a></li>
 	 </ul>
-	 <!--表单-->
-	 <form class="navbar-form navbar-left" rol="search">
-	  <div class="form-group">
-	  <input type="text" id="search-spot-info" class="form-control" placeholder="请输入想要查找的地点.." />
+	 <!--地点搜索框-->
+	 <div class="navbar-form navbar-left" rol="search">
+	  <div class="autocomplete">
+	  <input type="text" id="search-spot-info" class="form-control" placeholder="请输入想要查找的地点.." autocomplete="off"/>
 	  </div>
 	  <input type="button" id="search-spot" class="btn btn-info" value="搜索"></button>
-	 </form>
+	 </div>
 	</div>
 	
 	<!--地图-->
@@ -54,28 +64,52 @@
 	<!--路线搜索侧边栏-->
 	<div id="route-guide">
 		<h2 style="color: #e7eaed;">路线导航</h2>
-		<form class="form-group" rol="search">
-			<div class="form-group">
-				<input type="text" id="start-spot" class="form-control" placeholder="请输入出发地.."/>
-				<input type="text" id="end-spot" class="form-control" placeholder="请输入出发地.."/>
+		<div class="form-group" rol="search">
+			<div class="autocomplete">
+				<div class="form-group">
+					<label class="sr-only" for="start-spot">出发地</label>
+					<input type="text" id="start-spot" name="start-spot" class="form-control" placeholder="请输入出发地.." autocomplete="off"/>
+				</div>
+				<div class="form-group">
+					<label class="sr-only" for="end-spot">目的地</label>
+					<input type="text" id="end-spot" name="end-spot" class="form-control" placeholder="请输入目的地.." autocomplete="off"/>
+				</div>
 			</div>
 			<input type="button" id="search-route" class="btn btn-info" value="搜索"></button>
 			<input type="button" class="btn btn-danger" onclick="javascript:$.pageslide.close()" value="关闭"></a>
-		</form>
+		</div>
 		<div id="guide-path"></div>	
 	</div>
 	
 	<!--路线推荐侧边栏-->
 	<div id="route-recommend">
 		<h2 style="color: #e7eaed;">路线推荐</h2>
-		<form class="form-group" rol="search">
-			<div class="form-group">
-				<input type="text" id="user-pos" class="form-control" placeholder="请输入您的位置.."/>
+		<div class="form-inline" rol="search">
+			<div class="autocomplete">
+				<input type="text" id="user-pos" class="form-control" placeholder="请输入您的位置.." autocomplete="off"/>
 			</div>
-			<input type="button" id="search-recommend" class="btn btn-info" value="搜索"></button>
+			<input type="button" id="search-recommend" class="btn btn-info" value="搜索" autocomplete="off"></button>
 			<input type="button" class="btn btn-danger" onclick="javascript:$.pageslide.close()" value="关闭"></a>
-		</form>
+		</div>
 		<div id="recommend-path"></div>	
+	</div>
+	
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  <div class="modal-dialog" role="document">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			<h4 class="modal-title" id="myModalLabel">标题</h4>
+		  </div>
+		  <div class="modal-body">
+			您的内容...
+		  </div>
+		  <div class="modal-footer">
+			<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+			<button type="button" class="btn btn-primary">点击保存</button>
+		  </div>
+		</div>
+	  </div>
 	</div>
 
 </body>
@@ -84,7 +118,7 @@
 <script type="text/javascript">
 	// 百度地图API功能
 	var map = new BMap.Map("allmap",{enableMapClick:false});    // 创建Map实例
-	map.centerAndZoom(new BMap.Point(116.397888,39.991553), 18);  // 初始化地图,设置中心点坐标和地图级别
+	map.centerAndZoom(new BMap.Point(116.39699,39.9928), 19);  // 初始化地图,设置中心点坐标和地图级别
 	map.enableScrollWheelZoom(true);     // 开启鼠标滚轮缩放
 
 	var sy = new BMap.Symbol(BMap_Symbol_SHAPE_BACKWARD_OPEN_ARROW, {
@@ -93,28 +127,23 @@
 		strokeWeight: '0.8',	// 设置线宽
 	});
 
-	// 添加自定义景点标识
-	let points = [];
-	for(let i = 0;i < map_data.length;i++) {
-		points.push(new BMap.Point(map_data[i].x, map_data[i].y));
+	// 将所有景点加入搜索框自动补充
+	let spots = []
+	for(let i = 0;i < spot_data.length;i++) {
+		spots.push(spot_data[i].name);
 	}
-	let options = {
-		size: BMAP_POINT_SIZE_BIG,
-		shape: BMAP_POINT_SHAPE_STAR,
-		color: "#d32f76"
-	}
+	autocomplete(document.getElementById("search-spot-info"), spots);
+	autocomplete(document.getElementById("start-spot"), spots);
+	autocomplete(document.getElementById("end-spot"), spots);
 	
-	var opts = {
-		width : 250,     // 信息窗口宽度
-		height: 80,     // 信息窗口高度
-	};
-	for(let i = 0;i < map_data.length;i++) {
-		let marker = new BMap.Marker(new BMap.Point(map_data[i].x, map_data[i].y));
+	// 景点详细信息
+	for(let i = 0;i < spot_data.length;i++) {
+		let marker = new BMap.Marker(new BMap.Point(spot_data[i].x, spot_data[i].y));
 		map.addOverlay(marker);
 		let content = 
-		"<h4 style='margin:0 0 5px 0;padding:0.2em 0'>"+map_data[i].name+"</h4>" +
-		"<img style='float:right;margin:4px' id='img-"+i+"' src='img/"+i+".jpg' width='139' height='104' title='天安门'/>" + 
-		"<p style='margin:0;line-height:1.5;font-size:13px;text-indent:2em'>"+map_data[i].info+"</p></div>";
+		"<h4 style='margin:0 0 5px 0;padding:0.2em 0'>"+spot_data[i].name+"</h4>" +
+		"<img style='float:right;margin:4px' id='img-"+i+"' src='img/"+spot_data[i].name+".jpg' width='139' height='104' title='天安门'/>" + 
+		"<p style='margin:0;line-height:1.5;font-size:13px;text-indent:2em'>"+spot_data[i].info+"</p></div>";
 		let infoWindow = new BMap.InfoWindow(content);
 		marker.addEventListener("click", function() {
 			this.openInfoWindow(infoWindow);
@@ -124,10 +153,21 @@
 		})
 	}
 	
-	// 地点搜索
+	// $("#spot-result").hide();
+	
+	// 地点搜索（KMP实现）
 	$("#search-spot").click(function() {
 		let search_info = $("#search-spot-info").val();
-		console.log(search_info);
+		let resultSet = [];
+		for(let i = 0;i < spot_data.length;i++) {
+			if(KMP(spot_data[i].name, search_info)) {
+				// map.panTo(new BMap.Point(spot_data[i].x, spot_data[i].y));
+				// map.centerAndZoom(new BMap.Point(spot_data[i].x, spot_data[i].y),20);
+				resultSet.push(spot_data[i].name);
+			}
+		}
+		console.log(resultSet);
+		
 	});
 
 	// 路线搜索
@@ -136,11 +176,11 @@
 		let end_name = $("#end-spot").val();
 		// console.log(start,end);
 		let start_idx, end_idx;
-		for(let i = 0;i < map_data.length;i++) {
-			if(map_data[i].name == start_name) {
+		for(let i = 0;i < spot_data.length;i++) {
+			if(spot_data[i].name == start_name) {
 				start_idx = i;
 			}
-			if(map_data[i].name == end_name) {
+			if(spot_data[i].name == end_name) {
 				end_idx = i;
 			}
 		}
@@ -150,14 +190,15 @@
 		console.log(idx_to_name);
 		// 将景点下标替换为景点名称
 		for(let i = 0;i < idx_to_name.length;i++) {
-			path = path.replace(idx_to_name[i], map_data[idx_to_name[i]].name);
+			path = path.replace(idx_to_name[i], spot_data[idx_to_name[i]].name);
 		}
 		console.log(start_name + "到" + end_name + "的最短路径为：" + path);
 		document.getElementById("guide-path").innerText = "最短路线：\n" + path;
 	});
 
+	// 推荐路线
 	$("#search-recommend").click(function() {
-		let pos = $("#user-pos").val();
+		let user_pos = $("#user-pos").val();
 	})
 
 	// 路线搜索侧边栏
@@ -176,14 +217,14 @@
 	var icons = new BMap.IconSequence(sy, '10', '30');
 	// 创建polyline对象
 	var pois = [
-		new BMap.Point(map_data[0].x,map_data[0].y),
-		new BMap.Point(map_data[1].x,map_data[1].y),
-		new BMap.Point(map_data[2].x,map_data[2].y),
-		new BMap.Point(map_data[3].x,map_data[3].y)
+		new BMap.Point(spot_data[0].x,spot_data[0].y),
+		new BMap.Point(spot_data[1].x,spot_data[1].y),
+		new BMap.Point(spot_data[2].x,spot_data[2].y),
+		new BMap.Point(spot_data[3].x,spot_data[3].y)
 	];
 
-	var pointA = new BMap.Point(map_data[0].x,map_data[0].y);
-	var pointB = new BMap.Point(map_data[1].x,map_data[1].y);
+	var pointA = new BMap.Point(spot_data[0].x,spot_data[0].y);
+	var pointB = new BMap.Point(spot_data[1].x,spot_data[1].y);
 
 	var polyline =new BMap.Polyline(pois, {
 	   enableEditing: false,	// 是否启用线编辑，默认为false
@@ -196,13 +237,43 @@
 
 	console.log(map.getDistance(pointA,pointB));
 	map.addOverlay(polyline);          // 增加折线
-	  
-	let matrix = [
-		[0,4,Infinity,2,Infinity],
-		[4,0,4,1,Infinity],
-		[Infinity,4,0,1,3],
-		[2,1,1,0,7],
-		[Infinity,Infinity,3,7,0]
-	]
+	
+	// 邻接矩阵
+	/* 0~4 中华民族园俄罗斯人家, 侗寨, 赫哲族景区, 达斡尔村, 哈亭,
+	   5~9 鄂伦春景区, 板凳桥, 满族皇堂子, 满族博物馆, 朝鲜族村,
+	   10~14 朝鲜族景区, 打谷场, 景颇族, 佤寨, 山苗寨,
+	   15~19 铜鼓坪, 水苗寨, 侗族景区, 彝寨, 土林,
+	   20~21 侗族水车群, 景颇族馆景区
+	*/
+    // 初始化邻接矩阵
+	let matrix = new Array();
+	for(let i = 0;i < spot_data.length;i++) {
+		matrix.push(new Array());
+	}
+	for(let i = 0;i < spot_data.length;i++) {
+		for(let j = 0;j < spot_data.length;j++) {
+			if(i == j) {
+				matrix[i][j] = 0;
+			}
+			else {
+				matrix[i][j] = Infinity;
+			}
+		}
+	}
+	console.log(matrix);
+	// 读取地图并更新邻接矩阵
+	for(let i = 0;i < edge_data.length;i++) {
+		let start = -1;
+		let end = -1;
+		for(let j = 0;j < spots.length;j++) {
+			if(edge_data[i].start == spots[j]) {
+				start = j;
+			}
+			if(edge_data[i].end == spots[j]) {
+				end = j;
+			}
+		}
+		matrix[start][end] = matrix[end][start] = edge_data[i].dis;
+	}
 
 </script>
