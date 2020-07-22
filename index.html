@@ -6,7 +6,7 @@
     <style type="text/css">
     body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
     </style>
-    <script type="text/javascript" src="//api.map.baidu.com/api?v=3.0&ak=4vulvKbdIUlEmnkCieW8Qq2EA0X8o7ew"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=4vulvKbdIUlEmnkCieW8Qq2EA0X8o7ew"></script>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="js/map.js"></script>
@@ -14,10 +14,14 @@
 	<link href="css/bootstrap.min.css" rel="stylesheet">
 	<link href="css/materialdesignicons.min.css" rel="stylesheet">
 	<link href="css/style.min.css" rel="stylesheet">
-    <title>折线上添加方向箭头</title>
+	<link href="css/jquery.pageslide.css" rel="stylesheet">
+    <title>中华民族园旅游导览系统</title>
 </head>
 
 <body>
+	<!--路线导航侧边栏引用-->
+	<script type="text/javascript" src="js/jquery.pageslide.min.js"></script>
+	<!--顶部导航栏-->
 	<div class="navbar navbar-default" role="navigation">
 	 <!--标题通过“navbar-header”和“navbar-brand”来实现-->
 	 <div class="navbar-header">
@@ -29,8 +33,8 @@
 	  <a href="##" data-toggle="dropdown" class="dropdown-toggle">游客服务<span class="caret"></span></a>
 	  <!--二级菜单-->
 	  <ul class="dropdown-menu">
-	   <li><a href="##">路线导航</a></li>
-	   <li><a href="##">路线推荐</a></li>
+	   <li><a href="#route-guide" id="guide-button">路线导航</a></li>
+	   <li><a href="#route-recommend" id="recommend-button">路线推荐</a></li>
 	  </ul>
 	  </li>
 	  <li><a href="##">论坛</a></li>
@@ -38,63 +42,167 @@
 	 <!--表单-->
 	 <form class="navbar-form navbar-left" rol="search">
 	  <div class="form-group">
-	  <input type="text" id="searchInfo" class="form-control" placeholder="请输入想要查找的地点.." />
+	  <input type="text" id="search-spot-info" class="form-control" placeholder="请输入想要查找的地点.." />
 	  </div>
-	  <input type="button" id="searchSubmit" class="btn btn-info" value="搜索"></button>
+	  <input type="button" id="search-spot" class="btn btn-info" value="搜索"></button>
 	 </form>
 	</div>
+	
+	<!--地图-->
 	<div id="allmap"></div>
+	
+	<!--路线搜索侧边栏-->
+	<div id="route-guide">
+		<h2 style="color: #e7eaed;">路线导航</h2>
+		<form class="form-group" rol="search">
+			<div class="form-group">
+				<input type="text" id="start-spot" class="form-control" placeholder="请输入出发地.."/>
+				<input type="text" id="end-spot" class="form-control" placeholder="请输入出发地.."/>
+			</div>
+			<input type="button" id="search-route" class="btn btn-info" value="搜索"></button>
+			<input type="button" class="btn btn-danger" onclick="javascript:$.pageslide.close()" value="关闭"></a>
+		</form>
+		<div id="guide-path"></div>	
+	</div>
+	
+	<!--路线推荐侧边栏-->
+	<div id="route-recommend">
+		<h2 style="color: #e7eaed;">路线推荐</h2>
+		<form class="form-group" rol="search">
+			<div class="form-group">
+				<input type="text" id="user-pos" class="form-control" placeholder="请输入您的位置.."/>
+			</div>
+			<input type="button" id="search-recommend" class="btn btn-info" value="搜索"></button>
+			<input type="button" class="btn btn-danger" onclick="javascript:$.pageslide.close()" value="关闭"></a>
+		</form>
+		<div id="recommend-path"></div>	
+	</div>
+
 </body>
 
 
 <script type="text/javascript">
-    // 百度地图API功能
-    var map = new BMap.Map("allmap");    // 创建Map实例
-    map.centerAndZoom(new BMap.Point(116.397888,39.991553), 18);  // 初始化地图,设置中心点坐标和地图级别
-    map.enableScrollWheelZoom(true);     // 开启鼠标滚轮缩放
+	// 百度地图API功能
+	var map = new BMap.Map("allmap",{enableMapClick:false});    // 创建Map实例
+	map.centerAndZoom(new BMap.Point(116.397888,39.991553), 18);  // 初始化地图,设置中心点坐标和地图级别
+	map.enableScrollWheelZoom(true);     // 开启鼠标滚轮缩放
 
 	var sy = new BMap.Symbol(BMap_Symbol_SHAPE_BACKWARD_OPEN_ARROW, {
-    scale: 0.8,	// 图标缩放大小
-    strokeColor:'#fff',	// 设置矢量图标的线填充颜色
-    strokeWeight: '0.8',	// 设置线宽
-});
+		scale: 0.8,	// 图标缩放大小
+		strokeColor:'#fff',	// 设置矢量图标的线填充颜色
+		strokeWeight: '0.8',	// 设置线宽
+	});
 
-$('#searchSubmit').click(function() {
-	let search_info = $("#searchInfo").val();
-	console.log(search_info);
-});
+	// 添加自定义景点标识
+	let points = [];
+	for(let i = 0;i < map_data.length;i++) {
+		points.push(new BMap.Point(map_data[i].x, map_data[i].y));
+	}
+	let options = {
+		size: BMAP_POINT_SIZE_BIG,
+		shape: BMAP_POINT_SHAPE_STAR,
+		color: "#d32f76"
+	}
+	
+	var opts = {
+		width : 250,     // 信息窗口宽度
+		height: 80,     // 信息窗口高度
+	};
+	for(let i = 0;i < map_data.length;i++) {
+		let marker = new BMap.Marker(new BMap.Point(map_data[i].x, map_data[i].y));
+		map.addOverlay(marker);
+		let content = 
+		"<h4 style='margin:0 0 5px 0;padding:0.2em 0'>"+map_data[i].name+"</h4>" +
+		"<img style='float:right;margin:4px' id='img-"+i+"' src='img/"+i+".jpg' width='139' height='104' title='天安门'/>" + 
+		"<p style='margin:0;line-height:1.5;font-size:13px;text-indent:2em'>"+map_data[i].info+"</p></div>";
+		let infoWindow = new BMap.InfoWindow(content);
+		marker.addEventListener("click", function() {
+			this.openInfoWindow(infoWindow);
+			document.getElementById("img-"+i).onload = function() {
+				infoWindow.redraw();
+			}
+		})
+	}
+	
+	// 地点搜索
+	$("#search-spot").click(function() {
+		let search_info = $("#search-spot-info").val();
+		console.log(search_info);
+	});
 
-var icons = new BMap.IconSequence(sy, '10', '30');
-// 创建polyline对象
-var pois = [
-	new BMap.Point(map_data[0].x,map_data[0].y),
-	new BMap.Point(map_data[1].x,map_data[1].y),
-	new BMap.Point(map_data[2].x,map_data[2].y),
-	new BMap.Point(map_data[3].x,map_data[3].y)
-];
+	// 路线搜索
+	$("#search-route").click(function() {
+		let start_name = $("#start-spot").val();
+		let end_name = $("#end-spot").val();
+		// console.log(start,end);
+		let start_idx, end_idx;
+		for(let i = 0;i < map_data.length;i++) {
+			if(map_data[i].name == start_name) {
+				start_idx = i;
+			}
+			if(map_data[i].name == end_name) {
+				end_idx = i;
+			}
+		}
+		let dijkstra = Dijkstra(matrix, start_idx);
+		let path = dijkstra[1][end_idx];
+		let idx_to_name = path.match(/\d+/g); // 正则表达式提取下标用于转换为景点名称
+		console.log(idx_to_name);
+		// 将景点下标替换为景点名称
+		for(let i = 0;i < idx_to_name.length;i++) {
+			path = path.replace(idx_to_name[i], map_data[idx_to_name[i]].name);
+		}
+		console.log(start_name + "到" + end_name + "的最短路径为：" + path);
+		document.getElementById("guide-path").innerText = "最短路线：\n" + path;
+	});
 
-var pointA = new BMap.Point(map_data[0].x,map_data[0].y);
-var pointB = new BMap.Point(map_data[1].x,map_data[1].y);
+	$("#search-recommend").click(function() {
+		let pos = $("#user-pos").val();
+	})
 
-var polyline =new BMap.Polyline(pois, {
-   enableEditing: false,	// 是否启用线编辑，默认为false
-   enableClicking: true,	// 是否响应点击事件，默认为true
-   icons:[icons],
-   strokeWeight:'2',	// 折线的宽度，以像素为单位
-   strokeOpacity: 0.8,	// 折线的透明度，取值范围0 - 1
-   strokeColor:"#18a45b"	// 折线颜色
-});
+	// 路线搜索侧边栏
+	$("#guide-button").pageslide({
+		direction: "right",
+		modal: true
+	});
 
-console.log(map.getDistance(pointA,pointB));
-map.addOverlay(polyline);          // 增加折线
-  
-let matrix = [
-	[0,4,Infinity,2,Infinity],
-	[4,0,4,1,Infinity],
-	[Infinity,4,0,1,3],
-	[2,1,1,0,7],
-	[Infinity,Infinity,3,7,0]
-]
+	// 路线推荐侧边栏
+	$("#recommend-button").pageslide({
+		direction: "right",
+		modal: true
+	});
 
-Dijkstra(matrix, 0);
+
+	var icons = new BMap.IconSequence(sy, '10', '30');
+	// 创建polyline对象
+	var pois = [
+		new BMap.Point(map_data[0].x,map_data[0].y),
+		new BMap.Point(map_data[1].x,map_data[1].y),
+		new BMap.Point(map_data[2].x,map_data[2].y),
+		new BMap.Point(map_data[3].x,map_data[3].y)
+	];
+
+	var pointA = new BMap.Point(map_data[0].x,map_data[0].y);
+	var pointB = new BMap.Point(map_data[1].x,map_data[1].y);
+
+	var polyline =new BMap.Polyline(pois, {
+	   enableEditing: false,	// 是否启用线编辑，默认为false
+	   enableClicking: true,	// 是否响应点击事件，默认为true
+	   icons:[icons],
+	   strokeWeight:'2',	// 折线的宽度，以像素为单位
+	   strokeOpacity: 0.8,	// 折线的透明度，取值范围0 - 1
+	   strokeColor:"#18a45b"	// 折线颜色
+	});
+
+	console.log(map.getDistance(pointA,pointB));
+	map.addOverlay(polyline);          // 增加折线
+	  
+	let matrix = [
+		[0,4,Infinity,2,Infinity],
+		[4,0,4,1,Infinity],
+		[Infinity,4,0,1,3],
+		[2,1,1,0,7],
+		[Infinity,Infinity,3,7,0]
+	]
+
 </script>

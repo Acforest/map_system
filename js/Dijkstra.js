@@ -27,10 +27,11 @@ function Dijkstra(matrix, start) {
 				}
 			}
 		}
-		for(let i = 0;i < n;i++) {
-			console.log("顶点"+start+"到顶点"+i+"的最短距离为：" + dis[i]);
-			console.log("顶点"+start+"到顶点"+i+"的最短路径为：" + path[i]);
-		}
+		// for(let i = 0;i < n;i++) {
+		// 	console.log("顶点"+start+"到顶点"+i+"的最短距离为：" + dis[i]);
+		// 	console.log("顶点"+start+"到顶点"+i+"的最短路径为：" + path[i]);
+		// }
+		return [dis, path];
 	}
 	else {
 		throw new Error("邻接矩阵或起点有误！");
