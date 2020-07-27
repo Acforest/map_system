@@ -416,8 +416,6 @@
 				}
 			}
 		}
-		console.log(n_matrix);
-		//console.log(matrix);
 		
 		// var path = []; // 用于存放路径
 		// var visited = []; // 用于存放每个景点的访问情况
@@ -427,10 +425,15 @@
 		// }
 		// DFS(matrix, start_idx, path, visited);
 		
-		let tsp_result = tsp(n_matrix, start_idx, 1000);
-		path_str = start_name;
-		for(let i = 0;i < tsp_result[1].length - 1;i++) {
-			path_str += ("->" + spots[tsp_result[1][i]]);
+		let tsp_result = tsp(n_matrix, start_idx, 1e7);
+		path_str = "";
+		for(let i = 0;i < tsp_result[1].length;i++) {
+			if(i == 0) {
+				path_str += (spots[tsp_result[1][i]]);
+			}
+			else {
+				path_str += ("->" + spots[tsp_result[1][i]]);
+			}
 		}
 		document.getElementById("all-spot-path").innerText = "最短路线：\n" + path_str;
 	});
