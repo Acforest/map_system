@@ -1,4 +1,4 @@
-var graph_data = [
+var edge_data = [
 	{
 		start: "俄罗斯人家",
 		end: "侗寨",
@@ -158,5 +158,10 @@ var graph_data = [
 		start: "侗族水车群",
 		end: "景颇族馆景区",
 		dis: 40
+	},
+	{
+		start: "板凳桥",
+		end: "达斡尔村",
+		dis: 50
 	}
 ]

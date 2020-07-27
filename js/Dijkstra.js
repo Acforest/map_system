@@ -1,10 +1,11 @@
 function Dijkstra(matrix, start) {
 	if(matrix && matrix.length == matrix[0].length && start < matrix.length) {
 		let n = matrix.length; // 顶点个数
-		let dis = new Array(n); // start到各个顶点的最短距离
-		let path = new Array(n); // start到各个顶点的最短路径
-		let visited = new Array(n); // start到各个顶点的最短距离是否已求得
+		let dis = new Array(); // start到各个顶点的最短距离
+		let path = new Array(); // start到各个顶点的最短路径
+		let visited = new Array(); // start到各个顶点的最短距离是否已求得
 		for(let i = 0;i < n;i++) {
+			visited[i] = false;
 			path[i] = start + "->" + i;
 		}
 		dis[start] = 0; // start到自身的最短距离为0
