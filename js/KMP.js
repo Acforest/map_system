@@ -4,7 +4,6 @@
  * @param {string} pattern 模式串
  * @returns {boolean} 匹配为true，不匹配为false
  */
-
 function KMP(dest, pattern) {
 	// 根据模式串计算next数组
 	let next = new Array(pattern.length); // next数组
