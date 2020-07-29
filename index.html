@@ -27,12 +27,10 @@
 	<script type="text/javascript" src="js/knapsack.js"></script>
 	<!--DFS导入-->
 	<script type="text/javascript" src="js/DFS.js"></script>
-	<!--二叉堆导入-->
-	<script type="text/javascript" src="js/BinaryHeap.js"></script>
-	<!--ac自动机算法导入-->
-	<script type="text/javascript" src="js/ac_automation.js"></script>
-	<!--禁忌算发导入-->
-	<script type="text/javascript" src="js/TS.js"></script>
+	<!--堆排序导入-->
+	<script type="text/javascript" src="js/heapSort.js"></script>
+	<!--堆排序导入-->
+	<script type="text/javascript" src="js/levenshtein.js"></script>
 	
 	<link href="css/bootstrap.min.css" rel="stylesheet"/>
 	<link href="css/materialdesignicons.min.css" rel="stylesheet"/>
@@ -250,7 +248,7 @@
 	
 	// $("#spot-result").hide();
 	
-	// 景点搜索（KMP实现）
+	// 景点搜索（KMP 和 Levenstein distance 实现）
 	$("#search-spot").click(function() {
 		// 先清空之前的查询结果
 		document.getElementById("list-group").innerHTML = "";
@@ -258,9 +256,14 @@
 		let resultSet = [];
 		for(let i = 0;i < spot_data.length;i++) {
 			if(KMP(spot_data[i].name, search_info)) {
-				// map.panTo(new BMap.Point(spot_data[i].x, spot_data[i].y));
-				// map.centerAndZoom(new BMap.Point(spot_data[i].x, spot_data[i].y),20);
 				resultSet.push(spot_data[i].name);
+			}
+		}
+		if(resultSet.length == 0) {
+			for(let i = 0;i < spot_data.length;i++) {
+				if(levenstein(search_info, spot_data[i].name) <= 1) {
+					resultSet.push(spot_data[i].name);
+				}
 			}
 		}
 		console.log(resultSet);
@@ -367,6 +370,24 @@
 				recommend_point[i] += 10;
 			}
 		}
+		
+		// 堆排序
+		// rec_list = [];
+		// for(let i = 0;i < spots.length;i++) {
+		// 	rec_list.push({name: spots[i], point: recommend_point[i]});
+		// }
+		// console.log(rec_list);
+		// let hs = heapSort(rec_list, "point");
+		// console.log(hs);
+		
+		// function my_compare(point) {
+		// 	return function(a, b) {
+		// 		return a[point] < b[point];
+		// 	}
+		// }
+		// let topk = topK(rec_list, 5, "point");
+		// console.log(topk);
+		
 		// 推荐景点下标初始化
 		let recommend_idx = [];
 		for(let i = 0;i < spots.length;i++) {
@@ -565,12 +586,5 @@
 		});
 		map.addOverlay(polyline); // 增加折线
 	}
-	
-	let BHeap = new BinaryHeap([2,3,1,8,5], 5, function(a, b) {
-		return a < b;
-	});
-	BHeap.rebuild();
-	console.log(BHeap);
-	console.log(BHeap.top());
 
 </script>
