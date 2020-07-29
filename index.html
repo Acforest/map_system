@@ -27,8 +27,10 @@
 	<script type="text/javascript" src="js/knapsack.js"></script>
 	<!--DFS导入-->
 	<script type="text/javascript" src="js/DFS.js"></script>
-	<!--二叉堆导入-->
-	<script type="text/javascript" src="js/BinaryHeap.js"></script>
+	<!--ac自动机导入-->
+	<script type="text/javascript" src="js/ac_automation.js"></script>
+	<!--禁忌算发导入-->
+	<script type="text/javascript" src="js/TS.js"></script>
 	
 	<link href="css/bootstrap.min.css" rel="stylesheet"/>
 	<link href="css/materialdesignicons.min.css" rel="stylesheet"/>
@@ -392,10 +394,6 @@
 	
 	// 游览所有地点（tsp实现）
 	$("#search-all-spots").click(function() {
-		// 清除上次查找的路线
-		for(let i = 0;i < polylines.length;i++) {
-			map.removeOverlay(polylines[i]);
-		}
 		let start_name = $("#user-pos-1").val();
 		let start_idx = -1;
 		for(let i = 0;i < spots.length;i++) {
@@ -422,44 +420,25 @@
 				}
 			}
 		}
+		console.log(n_matrix);
+		//console.log(matrix);
 		
-		let tsp_result = tsp(n_matrix, start_idx, 1e7);
-		path_str = "";
-		let idx;
-		for(let j = 0;j < tsp_result[1].length;j++) {
-			if(tsp_result[1][j] == start_idx) {
-				idx = j;
-			}
-		}
-		for(let i = 0;i < tsp_result[1].length;i++) {
-			if(i == 0) {
-				path_str += (spots[tsp_result[1][idx]]);
-			}
-			else {
-				path_str += ("->" + spots[tsp_result[1][(i+idx)%tsp_result[1].length]]);
-			}
+		// var path = []; // 用于存放路径
+		// var visited = []; // 用于存放每个景点的访问情况
+		// // 初始化visited数组
+		// for(let k = 0;k < matrix.length;k++) {
+		// 	visited[k] = false;
+		// }
+		// DFS(matrix, start_idx, path, visited);
+		
+		let tsp_result = tsp(n_matrix, start_idx, 1000);
+		path_str = start_name;
+		for(let i = 0;i < tsp_result[1].length - 1;i++) {
+			path_str += ("->" + spots[tsp_result[1][i]]);
 		}
 		document.getElementById("all-spot-path").innerText = "最短路线：\n" + path_str;
-		// 将路径颜色设置为红色
-		for(let i = 0;i < tsp_result[1].length;i++) {
-			let pois = [
-				new BMap.Point(spot_data[tsp_result[1][i]].x, spot_data[tsp_result[1][i]].y),
-				new BMap.Point(spot_data[tsp_result[1][(i+1) % tsp_result[1].length]].x, spot_data[tsp_result[1][(i+1) % tsp_result[1].length]].y)
-			];
-			let polyline = new BMap.Polyline(pois, {
-				enableEditing: false,	// 是否启用线编辑，默认为false
-				enableClicking: true, // 是否响应点击事件，默认为true
-				strokeWeight:'2', // 折线的宽度，以像素为单位
-				strokeOpacity: 0.8, // 折线的透明度，取值范围0 - 1
-				strokeColor:"#ff0000", // 折线颜色
-			});
-			polylines.push(polyline);
-			map.addOverlay(polyline); // 增加折线
-		}
 	});
 	
-	
-	// 游玩时间规划（动态规划法实现）
 	$("#search-travel-time").click(function() {
 		document.getElementById("travel-time-spots").innerText = ""; // 清空之前的查询结果
 		let user_pos = $("#user-pos-2").val();
@@ -561,12 +540,5 @@
 		});
 		map.addOverlay(polyline); // 增加折线
 	}
-	
-	let BHeap = new BinaryHeap([2,3,1,8,5], 5, function(a, b) {
-		return a < b;
-	});
-	BHeap.rebuild();
-	console.log(BHeap);
-	console.log(BHeap.top());
 
 </script>
