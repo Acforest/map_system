@@ -58,8 +58,8 @@ function build_fail_ptr(root){//构建字典树失败指针
         
     }
 }
-//ac算法多字符查询
-function ac_automation(arr,str) {    
+
+function ac_automation(arr,str) {//ac自动机字符串匹配算法
     let tree = new trie() 
     tree.init_with_arr(arr); //生成字典树    
     build_fail_ptr(tree.root) //构造失败指针
@@ -71,10 +71,10 @@ function ac_automation(arr,str) {
             node=node.fail;
             current_node=node.find_node(str[i])
         }
-        if(current_node){
+        if(current_node){//当前节点非空，节点变化
             node=current_node;
         }
-        if(node.if_end){
+        if(node.if_end){//结尾判断
             ans.push(str.substr(i+1-node.deep,node.deep))
         }
     }
