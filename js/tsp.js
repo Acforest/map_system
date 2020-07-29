@@ -54,7 +54,7 @@ function tsp(matrix, start, max_count) {
 		let rand1 = Math.floor(Math.random()*matrix.length);
 		let rand2 = Math.floor(Math.random()*matrix.length);
 		// 如果随机取到的两个点相邻或相同则重新取点
-		if(Math.abs(rand1-rand2) <= 1 || rand1 == start || rand2 == start) {
+		if(Math.abs(rand1-rand2) <= 1) {
 			continue;
 		}
 		for(let i = 0;i < path.length;i++) {
